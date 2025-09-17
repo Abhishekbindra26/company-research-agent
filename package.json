@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.6.0"
+  },
+  "dependencies": {
+    "dotnet": "^1.1.4"
+  }
+}
