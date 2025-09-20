@@ -1,7 +1,7 @@
 from typing import TypedDict, NotRequired, Required, Dict, List, Any
 from backend.services.websocket_manager import WebSocketManager
 
-#Define the input state
+# Define the input state
 class InputState(TypedDict, total=False):
     company: Required[str]
     company_url: NotRequired[str]
@@ -28,3 +28,7 @@ class ResearchState(InputState):
     references: List[str]
     briefings: Dict[str, Any]
     report: str
+    employee_count: NotRequired[Dict[str, int]]  # Make it NotRequired
+    Company_Count: NotRequired[int]              # Make it NotRequired
+    enrichmentCounts: NotRequired[Dict[str, Any]]  # Make it NotRequired
+    employee_count_fetched: NotRequired[bool]

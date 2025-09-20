@@ -4,7 +4,6 @@ from typing import Any, Dict, Optional
 import certifi
 from pymongo import MongoClient
 
-
 class MongoDBService:
     def __init__(self, uri: str):
         # Use certifi for SSL certificate verification with updated options
@@ -31,7 +30,9 @@ class MongoDBService:
     def update_job(self, job_id: str, 
                   status: str = None,
                   result: Dict[str, Any] = None,
-                  error: str = None) -> None:
+                  error: str = None,
+                  enrichmentCounts: Dict[str, Any] = None,
+                  employeeCount: Dict[str, Any] = None) -> None:
         """Update a research job with results or status."""
         update_data = {"updated_at": datetime.utcnow()}
         if status:
@@ -40,6 +41,10 @@ class MongoDBService:
             update_data["result"] = result
         if error:
             update_data["error"] = error
+        if enrichmentCounts is not None:
+            update_data["enrichmentCounts"] = enrichmentCounts
+        if employeeCount is not None:
+            update_data["employeeCount"] = employeeCount
 
         self.jobs.update_one(
             {"job_id": job_id},
@@ -58,9 +63,11 @@ class MongoDBService:
             "references": report_data.get("references", []),
             "sections": report_data.get("sections_completed", []),
             "analyst_queries": report_data.get("analyst_queries", {}),
+            "enrichmentCounts": report_data.get("enrichmentCounts", {}),
+            "employeeCount": report_data.get("employeeCount", {}),
             "created_at": datetime.utcnow()
         })
 
     def get_report(self, job_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve a report by job ID."""
-        return self.reports.find_one({"job_id": job_id}) 
+        return self.reports.find_one({"job_id": job_id})

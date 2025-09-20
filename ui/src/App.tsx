@@ -530,6 +530,27 @@ function App() {
             },
           }));
         }
+        else if (statusData.status === "employee_count_ready") {
+          if (statusData.result?.enrichmentCounts?.employeeCount) {
+              setResearchState((prev) => ({
+                  ...prev,
+                  enrichmentCounts: {
+                      ...(prev.enrichmentCounts || {}),
+                      employeeCount: statusData.result.enrichmentCounts.employeeCount,
+                  } as EnrichmentCounts,
+              }));
+          }
+      } else if (statusData.status === "enrichment_counts_updated") {
+          if (statusData.result?.enrichmentCounts) {
+              setResearchState((prev) => ({
+                  ...prev,
+                  enrichmentCounts: {
+                      ...(prev.enrichmentCounts || {}),
+                      ...statusData.result.enrichmentCounts,
+                  } as EnrichmentCounts,
+              }));
+          }
+      }
         // Handle other status updates
         else if (statusData.status === "processing") {
           setIsComplete(false);

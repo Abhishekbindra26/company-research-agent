@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 
 type EnrichmentCounts = {
   company: { total: number; enriched: number };
+  employeeCount: { total: number; enriched: number };
   industry: { total: number; enriched: number };
   financial: { total: number; enriched: number };
   news: { total: number; enriched: number };
@@ -26,6 +27,14 @@ const CurationExtraction: React.FC<CurationExtractionProps> = ({
   const glassStyle = "backdrop-filter backdrop-blur-lg bg-white/80 border border-gray-200 shadow-xl";
   const glassCardStyle = `${glassStyle} rounded-2xl p-6`;
 
+  const categories = [
+    { key: 'company', label: 'Company' },
+    { key: 'employeeCount', label: 'Employee Count' },
+    { key: 'industry', label: 'Industry' },
+    { key: 'financial', label: 'Financial' },
+    { key: 'news', label: 'News' }
+  ];
+
   return (
     <div 
       className={`${glassCardStyle} transition-all duration-300 ease-in-out ${
@@ -47,16 +56,16 @@ const CurationExtraction: React.FC<CurationExtractionProps> = ({
           )}
         </button>
       </div>
-
+      
       <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
         isExpanded ? 'mt-4 max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
       }`}>
-        <div className="grid grid-cols-4 gap-4">
-          {['company', 'industry', 'financial', 'news'].map((category) => {
-            const counts = enrichmentCounts?.[category as keyof EnrichmentCounts];
+        <div className="grid grid-cols-5 gap-4">
+          {categories.map((category) => {
+            const counts = enrichmentCounts?.[category.key as keyof EnrichmentCounts];
             return (
-              <div key={category} className="backdrop-blur-2xl bg-white/95 border border-gray-200/50 rounded-xl p-3 shadow-none">
-                <h3 className="text-sm font-medium text-gray-700 mb-2 capitalize">{category}</h3>
+              <div key={category.key} className="backdrop-blur-2xl bg-white/95 border border-gray-200/50 rounded-xl p-3 shadow-none">
+                <h3 className="text-sm font-medium text-gray-700 mb-2">{category.label}</h3>
                 <div className="text-gray-900">
                   <div className="text-2xl font-bold mb-1">
                     {counts ? (
@@ -67,20 +76,20 @@ const CurationExtraction: React.FC<CurationExtractionProps> = ({
                       <Loader2 className="animate-spin h-6 w-6 mx-auto loader-icon" style={{ stroke: loaderColor }} />
                     )}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  {/* <div className="text-sm text-gray-600">
                     {counts ? (
                       `selected from ${counts.total}`
                     ) : (
                       "waiting..."
                     )}
-                  </div>
+                  </div> */}
                 </div>
               </div>
             );
           })}
         </div>
       </div>
-
+      
       {!isExpanded && enrichmentCounts && (
         <div className="mt-2 text-sm text-gray-600">
           {Object.values(enrichmentCounts).reduce((acc, curr) => acc + curr.enriched, 0)} documents enriched from {Object.values(enrichmentCounts).reduce((acc, curr) => acc + curr.total, 0)} total
@@ -90,4 +99,4 @@ const CurationExtraction: React.FC<CurationExtractionProps> = ({
   );
 };
 
-export default CurationExtraction; 
+export default CurationExtraction;

@@ -21,6 +21,7 @@ from .nodes.researchers import (
 logger = logging.getLogger(__name__)
 
 class Graph:
+    # This class initializes the workflow nodes and manages the state transitions.
     def __init__(self, company=None, url=None, hq_location=None, industry=None,
                  websocket_manager=None, job_id=None):
         self.websocket_manager = websocket_manager
@@ -83,12 +84,16 @@ class Graph:
             "company_analyst"
         ]
 
-        # Connect grounding to all research nodes
-        for node in research_nodes:
-            self.workflow.add_edge("grounding", node)
-            self.workflow.add_edge(node, "collector")
+        # The `CompanyAnalyzer` must run first to ensure the employee count is available
+        self.workflow.add_edge("grounding", "company_analyst")
 
-        # Connect remaining nodes
+        # The other research nodes can run in parallel
+        for node in research_nodes:
+            if node != "company_analyst":
+                self.workflow.add_edge("company_analyst", node)
+                self.workflow.add_edge(node, "collector")
+
+        # The `collector` will only run after all parallel research nodes have completed
         self.workflow.add_edge("collector", "curator")
         self.workflow.add_edge("curator", "enricher")
         self.workflow.add_edge("enricher", "briefing")
@@ -101,7 +106,7 @@ class Graph:
         async for state in compiled_graph.astream(
             self.input_state,
             thread
-        ):
+        ):  
             if self.websocket_manager and self.job_id:
                 await self._handle_ws_update(state)
             yield state

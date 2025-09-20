@@ -4,6 +4,60 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 // Sample companies for examples
 export const EXAMPLE_COMPANIES = [
   {
+    name: "Gong",
+    url: "gong.io",
+    hq: "San Francisco, CA",
+    industry: "Revenue Intelligence"
+  },
+  {
+    name: "4Com",
+    url: "4com.co.uk",
+    hq: "Bournemouth, UK",
+    industry: "Business Telecoms"
+  },
+  {
+    name: "Amity Solutions",
+    url: "amitysolutions.com",
+    hq: "Bangkok, Thailand",
+    industry: "Community & Messaging Platform"
+  },
+  {
+    name: "Tollring",
+    url: "tollring.com",
+    hq: "Uxbridge, UK",
+    industry: "Call Analytics & AI"
+  },
+{
+name: "Clari",
+url: "clari.com",
+hq: "Sunnyvale, CA",
+industry: "Revenue Operations"
+},
+{
+name: "Salesken",
+url: "salesken.ai",
+hq: "Bangalore, India",
+industry: "AI Sales Enablement"
+},
+{
+name: "Invoca",
+url: "invoca.com",
+hq: "Santa Barbara, CA",
+industry: "Conversation Intelligence"
+},
+{
+name: "SalesCloser AI",
+url: "salescloser.ai",
+hq: "Remote / US-based",
+industry: "AI Sales Automation"
+},
+{
+name: "Insight7",
+url: "insight7.io",
+hq: "Remote / US-based",
+industry: "AI Customer Insights"
+},
+{
     name: "Stripe",
     url: "stripe.com",
     hq: "San Francisco, CA",

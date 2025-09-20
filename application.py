@@ -28,10 +28,11 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 console_handler = logging.StreamHandler()
 logger.addHandler(console_handler)
+
 # Set up the FastAPI application
 app = FastAPI(title="Tavily Company Research API")
+
 # Add CORS middleware to allow cross-origin requests
-# This is necessary for frontend applications to interact with the API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,15 +41,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-## Initialize WebSocket manager and PDF service
-
-# The WebSocket manager handles real-time updates for research jobs
+# Initialize WebSocket manager and PDF service
 manager = WebSocketManager()
-# The PDF service is responsible for generating and serving PDF reports
 pdf_service = PDFService({"pdf_output_dir": "pdfs"})
 
-# This dictionary holds the status of each research job, including its result and any errors
-# It uses a defaultdict to provide default values for new job IDs
+# Job status tracking
 job_status = defaultdict(lambda: {
     "status": "pending",
     "result": None,
@@ -56,10 +53,11 @@ job_status = defaultdict(lambda: {
     "debug_info": [],
     "company": None,
     "report": None,
+    "enrichmentCounts": None,
     "last_update": datetime.now().isoformat()
 })
-# Initialize MongoDB service if URI is provided
 
+# Initialize MongoDB service if URI is provided
 mongodb = None
 if mongo_uri := os.getenv("MONGODB_URI"):
     try:
@@ -69,19 +67,16 @@ if mongo_uri := os.getenv("MONGODB_URI"):
         logger.warning(f"Failed to initialize MongoDB: {e}. Continuing without persistence.")
 
 # Define request and response models
-
-# These models are used to validate incoming requests and structure responses
 class ResearchRequest(BaseModel):
     company: str
     company_url: str | None = None
     industry: str | None = None
     hq_location: str | None = None
 
-# This model is used to structure the data for PDF generation requests
 class PDFGenerationRequest(BaseModel):
     report_content: str
     company_name: str | None = None
-# This endpoint handles CORS preflight requests for the /research endpoint
+
 @app.options("/research")
 async def preflight():
     response = JSONResponse(content=None, status_code=200)
@@ -89,7 +84,7 @@ async def preflight():
     response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
     return response
-# This endpoint handles CORS preflight requests for the /research endpoint
+
 @app.post("/research")
 async def research(data: ResearchRequest):
     try:
@@ -111,8 +106,7 @@ async def research(data: ResearchRequest):
     except Exception as e:
         logger.error(f"Error initiating research: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
-# This function processes the research request asynchronously
-# It runs the research graph and updates the job status via WebSocket
+
 async def process_research(job_id: str, data: ResearchRequest):
     try:
         if mongodb:
@@ -133,38 +127,62 @@ async def process_research(job_id: str, data: ResearchRequest):
         state = {}
         async for s in graph.run(thread={}):
             state.update(s)
-        
-        # Look for the compiled report in either location.
+            print(f"Current state for job {job_id}: {state}")
+            print(f"State keys: {list(state.keys())}")
+            print("\n" * 15)
+
+        # Extract enrichment counts and employee count data
+        enrichment_counts = state.get('enrichmentCounts', {})
+        employee_count_info = enrichment_counts.get('employeeCount', {})
+
+        logger.info(f"Final state keys: {list(state.keys())}")
+        logger.info(f"Employee count enrichment sent to frontend for job {job_id}: {employee_count_info}")
+        logger.info(f"Full enrichment counts: {enrichment_counts}")
+
+        # Look for the compiled report
         report_content = state.get('report') or (state.get('editor') or {}).get('report')
+
         if report_content:
             logger.info(f"Found report in final state (length: {len(report_content)})")
+
+            # Update job status with all relevant data
             job_status[job_id].update({
                 "status": "completed",
                 "report": report_content,
                 "company": data.company,
+                "enrichmentCounts": enrichment_counts,
+                "employeeCount": employee_count_info,
                 "last_update": datetime.now().isoformat()
             })
+
             if mongodb:
                 mongodb.update_job(job_id=job_id, status="completed")
-                mongodb.store_report(job_id=job_id, report_data={"report": report_content})
+                mongodb.store_report(job_id=job_id, report_data={
+                    "report": report_content,
+                    "enrichmentCounts": enrichment_counts,
+                    "employeeCount": employee_count_info
+                })
+
+            # Send completion update with enrichment data
             await manager.send_status_update(
                 job_id=job_id,
                 status="completed",
                 message="Research completed successfully",
                 result={
                     "report": report_content,
-                    "company": data.company
+                    "company": data.company,
+                    "enrichmentCounts": enrichment_counts,
+                    "employeeCount": employee_count_info
                 }
             )
         else:
             logger.error(f"Research completed without finding report. State keys: {list(state.keys())}")
             logger.error(f"Editor state: {state.get('editor', {})}")
-            
-            # Check if there was a specific error in the state
+
             error_message = "No report found"
             if error := state.get('error'):
                 error_message = f"Error: {error}"
-            
+
             await manager.send_status_update(
                 job_id=job_id,
                 status="failed",
@@ -173,7 +191,7 @@ async def process_research(job_id: str, data: ResearchRequest):
             )
 
     except Exception as e:
-        logger.error(f"Research failed: {str(e)}")
+        logger.error(f"Research failed: {str(e)}", exc_info=True)
         await manager.send_status_update(
             job_id=job_id,
             status="failed",
@@ -182,13 +200,10 @@ async def process_research(job_id: str, data: ResearchRequest):
         )
         if mongodb:
             mongodb.update_job(job_id=job_id, status="failed", error=str(e))
-# This endpoint checks if the server is alive
-# It returns a simple JSON response to confirm the server is running
+
 @app.get("/")
 async def ping():
     return {"message": "Alive"}
-# This endpoint serves a PDF file from the 'pdfs' directory
-# It checks if the file exists and returns it with the appropriate media type
 
 @app.get("/research/pdf/{filename}")
 async def get_pdf(filename: str):
@@ -196,8 +211,6 @@ async def get_pdf(filename: str):
     if not os.path.exists(pdf_path):
         raise HTTPException(status_code=404, detail="PDF not found")
     return FileResponse(pdf_path, media_type='application/pdf', filename=filename)
-# This WebSocket endpoint allows clients to connect and receive real-time updates on research job status
-# It accepts a job ID and sends updates about the job status, result, or errors
 
 @app.websocket("/research/ws/{job_id}")
 async def websocket_endpoint(websocket: WebSocket, job_id: str):
@@ -212,7 +225,12 @@ async def websocket_endpoint(websocket: WebSocket, job_id: str):
                 status=status["status"],
                 message="Connected to status stream",
                 error=status["error"],
-                result=status["result"]
+                result={
+                    "report": status.get("report"),
+                    "company": status.get("company"),
+                    "enrichmentCounts": status.get("enrichmentCounts"),
+                    "employeeCount": status.get("employeeCount")
+                }
             )
 
         while True:
@@ -225,13 +243,14 @@ async def websocket_endpoint(websocket: WebSocket, job_id: str):
     except Exception as e:
         logger.error(f"WebSocket error for job {job_id}: {str(e)}", exc_info=True)
         manager.disconnect(websocket, job_id)
-# This endpoint retrieves the status of a research job by its ID
-# It returns the job status, result, and any error messages
 
 @app.get("/research/{job_id}")
 async def get_research(job_id: str):
     if not mongodb:
-        raise HTTPException(status_code=501, detail="Database persistence not configured")
+        if job_id in job_status:
+            return job_status[job_id]
+        raise HTTPException(status_code=404, detail="Research job not found")
+
     job = mongodb.get_job(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Research job not found")
@@ -243,9 +262,12 @@ async def get_research_report(job_id: str):
         if job_id in job_status:
             result = job_status[job_id]
             if report := result.get("report"):
-                return {"report": report}
+                return {
+                    "report": report,
+                    "enrichmentCounts": result.get("enrichmentCounts"),
+                    "employeeCount": result.get("employeeCount")
+                }
         raise HTTPException(status_code=404, detail="Report not found")
-    
     report = mongodb.get_report(job_id)
     if not report:
         raise HTTPException(status_code=404, detail="Research report not found")

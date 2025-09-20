@@ -185,56 +185,56 @@ const LocationInput: React.FC<LocationInputProps> = ({ value, onChange, classNam
       }
 
       // Style the autocomplete dropdown
-      const style = document.createElement('style');
-      style.textContent = `
-        .pac-container {
-          background-color: white !important;
-          border: 1px solid rgba(70, 139, 255, 0.1) !important;
-          border-radius: 0.75rem !important;
-          margin-top: 0.5rem !important;
-          font-family: "Noto Sans", sans-serif !important;
-          overflow: hidden !important;
-          box-shadow: none !important;
-        }
-        .pac-item {
-          padding: 0.875rem 1.25rem !important;
-          cursor: pointer !important;
-          transition: all 0.2s ease-in-out !important;
-          border-bottom: 1px solid rgba(70, 139, 255, 0.05) !important;
-        }
-        .pac-item:last-child {
-          border-bottom: none !important;
-        }
-        .pac-item:hover {
-          background-color: rgba(70, 139, 255, 0.03) !important;
-        }
-        .pac-item-selected {
-          background-color: rgba(70, 139, 255, 0.05) !important;
-        }
-        .pac-item-query {
-          color: #1a365d !important;
-          font-size: 0.9375rem !important;
-          font-weight: 500 !important;
-        }
-        .pac-matched {
-          font-weight: 600 !important;
-        }
-        .pac-item span:not(.pac-item-query) {
-          color: #64748b !important;
-          font-size: 0.8125rem !important;
-          margin-left: 0.5rem !important;
-        }
-        /* Hide the location icon */
-        .pac-icon {
-          display: none !important;
-        }
-        /* Style for the new PlaceAutocompleteElement */
-        gmp-place-autocomplete {
-          width: 100% !important;
-          --gmp-place-autocomplete-font-family: "DM Sans", sans-serif !important;
-        }
-      `;
-      document.head.appendChild(style);
+        const style = document.createElement('style');
+        style.textContent = `
+          .pac-container {
+            background-color: white !important;
+            border: 1px solid rgba(70, 139, 255, 0.1) !important;
+            border-radius: 0.75rem !important;
+            margin-top: 0.5rem !important;
+            font-family: "Noto Sans", sans-serif !important;
+            overflow: hidden !important;
+            box-shadow: none !important;
+          }
+          .pac-item {
+            padding: 0.875rem 1.25rem !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease-in-out !important;
+            border-bottom: 1px solid rgba(70, 139, 255, 0.05) !important;
+          }
+          .pac-item:last-child {
+            border-bottom: none !important;
+          }
+          .pac-item:hover {
+            background-color: rgba(70, 139, 255, 0.03) !important;
+          }
+          .pac-item-selected {
+            background-color: rgba(70, 139, 255, 0.05) !important;
+          }
+          .pac-item-query {
+            color: #1a365d !important;
+            font-size: 0.9375rem !important;
+            font-weight: 500 !important;
+          }
+          .pac-matched {
+            font-weight: 600 !important;
+          }
+          .pac-item span:not(.pac-item-query) {
+            color: #64748b !important;
+            font-size: 0.8125rem !important;
+            margin-left: 0.5rem !important;
+          }
+          /* Hide the location icon */
+          .pac-icon {
+            display: none !important;
+          }
+          /* Style for the new PlaceAutocompleteElement */
+          gmp-place-autocomplete {
+            width: 100% !important;
+            --gmp-place-autocomplete-font-family: "DM Sans", sans-serif !important;
+          }
+        `;
+        document.head.appendChild(style);
 
       isInitializedRef.current = true;
     } catch (error) {

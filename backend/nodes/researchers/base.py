@@ -9,9 +9,6 @@ from tavily import AsyncTavilyClient
 
 from ...classes import ResearchState
 from ...utils.references import clean_title
-
-# add comments before every section of code to explain its purpose,inside the class too
-
 logger = logging.getLogger(__name__)
 
 class BaseResearcher:
