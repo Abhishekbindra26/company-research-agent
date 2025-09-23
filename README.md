@@ -107,11 +107,4 @@ The platform implements a WebSocket-based real-time communication system:
    - Briefing start/completion
    - Report generation updates
 
-## Setup Instructions
 
-### Quick Setup
-
-1. Clone the project:
-   ```bash
-   git clone https://github.com/your-username/my-company-research.git
-   cd my-company-research
