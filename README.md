@@ -56,32 +56,18 @@ The platform leverages separate models for optimal performance:
    - Used for generating initial category briefings
    - Efficient at maintaining context across multiple documents
 
-2. **GPT-4.1 mini** (`editor.py`):
-   - Specializes in precise formatting and editing tasks
-   - Handles markdown structure and consistency
-   - Superior at following exact formatting instructions
-   - Used for:
-     - Final report compilation
-     - Content deduplication
-     - Markdown formatting
-     - Real-time report streaming
+2. **GPT-4.1 mini (`editor.py`)**:
+   - Handles formatting, deduplication, and markdown structure.
+   - Provides real-time report generation with clean outputs.
 
-This approach combines Gemini's strength in handling large context windows with GPT-4.1-mini's precision in following specific formatting instructions.
+### Content Filtering
 
-### Content Curation System
+The relevance scoring system helps ensure that only the most pertinent documents are included:
 
-The platform uses a content filtering system in `curator.py`:
-
-1. **Relevance Scoring**:
-   - A minimum threshold (default 0.4) is required to proceed
-   - Scores reflect relevance to the specific research query
-   - Higher scores indicate better matches to the research intent
-
-2. **Document Processing**:
-   - Content is normalized and cleaned
-   - URLs are deduplicated and standardized
-   - Documents are sorted by relevance scores
-   - Real-time progress updates are sent via WebSocket
+- Documents are scored based on their relevance to the query.
+- Scores below a defined threshold are excluded.
+- URLs are deduplicated, and documents are normalized for consistency.
+- Real-time updates keep users informed throughout the research process.
 
 ### Real-Time Communication System
 
@@ -116,9 +102,16 @@ The platform implements a WebSocket-based real-time communication system:
      - Report generation progress
 
 3. **Status Types**:
-   - `query_generating`: Real-time query creation updates
-   - `document_kept`: Document curation progress
-   - `briefing_start/complete`: Briefing generation status
-   - `report_chunk`: Streaming report generation
-   - `curation_complete`: Final document statistics
+   - Query creation
+   - Document filtering
+   - Briefing start/completion
+   - Report generation updates
 
+## Setup Instructions
+
+### Quick Setup
+
+1. Clone the project:
+   ```bash
+   git clone https://github.com/your-username/my-company-research.git
+   cd my-company-research
