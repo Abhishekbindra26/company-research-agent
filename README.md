@@ -18,7 +18,6 @@ https://github.com/user-attachments/assets/0e373146-26a7-4391-b973-224ded3182a9
 ## Features
 
 - **Multi-Source Research**: Gathers data from various sources including company websites, news articles, financial reports, and industry analyses
-- **AI-Powered Content Filtering**: Uses Tavily's relevance scoring for content curation
 - **Real-Time Progress Streaming**: Uses WebSocket connections to stream research progress and results
 - **Dual Model Architecture**:
   - Gemini 2.0 Flash for high-context research synthesis
